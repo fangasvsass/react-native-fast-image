@@ -1,6 +1,6 @@
 {
-  "name": "react-native-fast-image",
-  "version": "2.0.0",
+  "name": "react-native-letote-fast-image",
+  "version": "1.0.0",
   "description": "🚩 FastImage, performant React Native image component.",
   "keywords": [
     "cache",
@@ -9,12 +9,8 @@
     "image",
     "priority"
   ],
-  "homepage": "https://github.com/DylanVann/react-native-fast-image#readme",
-  "bugs": {
-    "url": "https://github.com/DylanVann/react-native-fast-image/issues"
-  },
   "license": "MIT",
-  "author": "Dylan Vann <dylanvann@gmail.com> (http://dylanvann.com)",
+  "author": "blakefang",
   "files": [
     "ios",
     "android",
@@ -27,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DylanVann/react-native-fast-image.git"
+    "url": "git+https://github.com/fangasvsass/react-native-fast-image.git"
   },
   "scripts": {
     "format": "prettier --write --no-semi --single-quote --trailing-comma all ./FastImage.js ./example/*.js ./example/fastImage/*.js ./server/*.js",
@@ -37,7 +33,7 @@
     "test:pretty": "prettier-check --write --no-semi --single-quote --trailing-comma all ./FastImage.js ./example/*.js ./example/fastImage/*.js ./server/*.js"
   },
   "dependencies": {
-    "prop-types": "^15.5.10"
+    "prop-types": "^15.6.0"
   },
   "devDependencies": {
     "babel-jest": "^21.2.0",

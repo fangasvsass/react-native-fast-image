@@ -34,7 +34,7 @@ const getImages = () => {
   return [
     getImageUrl('x58soEovG_M', IMAGE_SIZE_PX, IMAGE_SIZE_PX),
     getImageUrl('yPI7myL5eWY', IMAGE_SIZE_PX, IMAGE_SIZE_PX),
-    'https://cdn-images-1.medium.com/max/1600/1*-CY5bU4OqiJRox7G00sftw.gif',
+    'https://qimg-staging.letote.cn/uploads/photo/1819/full__59A9119.JPG_2x3.jpg',
   ]
 }
 
