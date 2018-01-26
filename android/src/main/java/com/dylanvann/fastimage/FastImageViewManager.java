@@ -102,8 +102,10 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
                 .priority(priority)
                 .placeholder(TRANSPARENT_DRAWABLE);
 
+        String defaultSource=source.getString("defaultSource");
         requestManager
-                .load(glideUrl)
+                .load("glideUrl")
+                .thumbnail(requestManagerThumb.load(defaultSource))
                 .apply(options)
                 .listener(new FastImageRequestListener(key))
                 .into(view);
