@@ -9,6 +9,7 @@ import {
 
 const resolveAssetSource = require('react-native/Libraries/Image/resolveAssetSource')
 
+
 const FastImageViewNativeModule = NativeModules.FastImageView
 
 class FastImage extends Component {
@@ -19,6 +20,8 @@ class FastImage extends Component {
   render() {
     const {
       source,
+      circle,
+      defaultSource,
       onLoadStart,
       onProgress,
       onLoad,
@@ -34,6 +37,7 @@ class FastImage extends Component {
           ref={e => (this._root = e)}
           {...props}
           source={source}
+          defaultSource={defaultSource}
           onLoadStart={onLoadStart}
           onProgress={onProgress}
           onLoad={onLoad}
@@ -44,11 +48,14 @@ class FastImage extends Component {
     }
 
     const resolvedSource = resolveAssetSource(source)
+    const resolvedDefaultSource = resolveAssetSource(defaultSource)
     return (
       <FastImageView
         ref={e => (this._root = e)}
         {...props}
+        defaultSource={resolvedDefaultSource}
         source={resolvedSource}
+        circle={circle}
         onFastImageLoadStart={onLoadStart}
         onFastImageProgress={onProgress}
         onFastImageLoad={onLoad}
@@ -89,6 +96,8 @@ const FastImageSourcePropType = PropTypes.shape({
 FastImage.propTypes = {
   ...ViewPropTypes,
   source: PropTypes.oneOfType([FastImageSourcePropType, PropTypes.number]),
+  defaultSource:PropTypes.oneOfType([FastImageSourcePropType, PropTypes.number]),
+  circle:PropTypes.bool,
   onLoadStart: PropTypes.func,
   onProgress: PropTypes.func,
   onLoad: PropTypes.func,

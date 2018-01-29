@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
-import FastImage from 'react-native-fast-image'
+import FastImage from 'react-native-letote-fast-image'
 import uuid from 'uuid/v4'
 
 const getImageUrl = (id, width, height) =>
@@ -34,7 +34,7 @@ const getImages = () => {
   return [
     getImageUrl('x58soEovG_M', IMAGE_SIZE_PX, IMAGE_SIZE_PX),
     getImageUrl('yPI7myL5eWY', IMAGE_SIZE_PX, IMAGE_SIZE_PX),
-    'https://qimg-staging.letote.cn/uploads/photo/1819/full__59A9119.JPG_2x3.jpg',
+    'https://qimg-staging.letote.cn/uploads/photo/5858/full_1516931609654.jpg',
   ]
 }
 
@@ -91,6 +91,19 @@ class FastImageExample extends Component {
             <Text>• authentication (token)</Text>
             <Button title="Reload" onPress={this.onPressedReload} />
           </View>
+                    <FastImage
+            style={styles.image}
+            source={{
+              uri: images[2] + this.state.bust,
+              headers: {
+                token: TOKEN,
+              },
+              priority: FastImage.priority.high,
+            }}
+             // circle={true}
+             // defaultSource={{uri:'https://qimg-staging.letote.cn/uploads/photo/5858/small_1516931609654.jpg'}}
+            {...getTestProgressCallbacks('3')}
+          />
           <FastImage
             style={styles.image}
             source={{
@@ -113,17 +126,7 @@ class FastImageExample extends Component {
             }}
             {...getTestProgressCallbacks('2')}
           />
-          <FastImage
-            style={styles.image}
-            source={{
-              uri: images[2] + this.state.bust,
-              headers: {
-                token: TOKEN,
-              },
-              priority: FastImage.priority.high,
-            }}
-            {...getTestProgressCallbacks('3')}
-          />
+
         </ScrollView>
       </View>
     )
@@ -150,8 +153,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   image: {
-    height: IMAGE_SIZE,
-    width: IMAGE_SIZE,
+    height: 800,
+    width: 500,
     backgroundColor: '#eee',
     margin: 2,
   },
