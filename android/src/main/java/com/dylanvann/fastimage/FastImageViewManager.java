@@ -8,10 +8,14 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
-import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.RequestManager;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.ImageViewTarget;
+import com.bumptech.glide.request.target.Target;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
@@ -37,7 +41,6 @@ import static com.dylanvann.fastimage.FastImageRequestListener.REACT_ON_LOAD_EVE
 
 class ImageViewWithUrl extends ImageView {
     public GlideUrl glideUrl;
-    public RequestBuilder requestBuilder;
     public String defaultSource = "";
     public String placeholder = "";
     public boolean circle;
@@ -125,7 +128,7 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
                 .load(view.glideUrl.toStringUrl())
                 .thumbnail(requestManagerThumb.load(view.defaultSource))
                 .apply(options)
-                .listener(new FastImageRequestListener(view.glideUrl.toStringUrl()))
+                .listener(LISTENER)
                 .into(view);
     }
 
@@ -144,11 +147,6 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
         } catch (Exception e) {
         }
     }
-
-    @ReactProp(name = "placeholder")
-    public void setPlaceholder(ImageViewWithUrl view, @Nullable ReadableMap placeholder) {
-
-    }
     @ReactProp(name = "resizeMode")
     public void setResizeMode(ImageViewWithUrl view, String resizeMode) {
         final ImageViewWithUrl.ScaleType scaleType = FastImageViewConverter.scaleType(resizeMode);
@@ -159,7 +157,7 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
     public void onDropViewInstance(ImageViewWithUrl view) {
         // This will cancel existing requests.
         requestManager.clear(view);
-        final String key = view.glideUrl.toString();
+        final String key = view.glideUrl.toStringUrl();
         OkHttpProgressGlideModule.forget(key);
         List<ImageViewWithUrl> viewsForKey = VIEWS_FOR_URLS.get(key);
         if (viewsForKey != null) {
@@ -201,6 +199,38 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
             }
         }
     }
+
+    private static RequestListener< Drawable> LISTENER = new RequestListener<Drawable>() {
+        @Override
+        public boolean onLoadFailed(@android.support.annotation.Nullable GlideException e, Object model,
+                                    Target<Drawable> target, boolean isFirstResource) {
+            if (!(target instanceof ImageViewTarget)) {
+                return false;
+            }
+            ImageViewWithUrl view = (ImageViewWithUrl) ((ImageViewTarget) target).getView();
+            OkHttpProgressGlideModule.forget(view.glideUrl.toStringUrl());
+            ThemedReactContext context = (ThemedReactContext) view.getContext();
+            RCTEventEmitter eventEmitter = context.getJSModule(RCTEventEmitter.class);
+            int viewId = view.getId();
+            eventEmitter.receiveEvent(viewId, REACT_ON_ERROR_EVENT, new WritableNativeMap());
+            eventEmitter.receiveEvent(viewId, REACT_ON_LOAD_END_EVENT, new WritableNativeMap());
+            return false;
+        }
+
+        @Override
+        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+            if (!(target instanceof ImageViewTarget)) {
+                return false;
+            }
+            ImageViewWithUrl view = (ImageViewWithUrl) ((ImageViewTarget) target).getView();
+            ThemedReactContext context = (ThemedReactContext) view.getContext();
+            RCTEventEmitter eventEmitter = context.getJSModule(RCTEventEmitter.class);
+            int viewId = view.getId();
+            eventEmitter.receiveEvent(viewId, REACT_ON_LOAD_EVENT, new WritableNativeMap());
+            eventEmitter.receiveEvent(viewId, REACT_ON_LOAD_END_EVENT, new WritableNativeMap());
+            return false;
+        }
+    };
 
     @Override
     public float getGranularityPercentage() {

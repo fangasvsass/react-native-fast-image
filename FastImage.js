@@ -1,14 +1,15 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import {
+  View,
   Image,
   NativeModules,
   requireNativeComponent,
   ViewPropTypes,
+  StyleSheet
 } from 'react-native'
 
 const resolveAssetSource = require('react-native/Libraries/Image/resolveAssetSource')
-
 
 const FastImageViewNativeModule = NativeModules.FastImageView
 
@@ -27,6 +28,9 @@ class FastImage extends Component {
       onLoad,
       onError,
       onLoadEnd,
+      style,
+      children,
+      borderRadius,
       ...props
     } = this.props
 
@@ -36,6 +40,7 @@ class FastImage extends Component {
         <Image
           ref={e => (this._root = e)}
           {...props}
+          style={style}
           source={source}
           defaultSource={defaultSource}
           onLoadStart={onLoadStart}
@@ -49,34 +54,65 @@ class FastImage extends Component {
 
     const resolvedSource = resolveAssetSource(source)
     const resolvedDefaultSource = resolveAssetSource(defaultSource)
+    if (children) {
+      throw new Error(
+        'The <FastImage> component cannot contain children. If you want to render content on top of the image consider using absolute positioning.'
+      )
+    }
+
+    if (!borderRadius) {
+      return (
+        <FastImageView
+          ref={e => (this._root = e)}
+          {...props}
+          style={style}
+          source={resolvedSource}
+          defaultSource={resolvedDefaultSource}
+          onFastImageLoadStart={onLoadStart}
+          onFastImageProgress={onProgress}
+          onFastImageLoad={onLoad}
+          onFastImageError={onError}
+          onFastImageLoadEnd={onLoadEnd}
+        />
+      )
+    }
+
     return (
-      <FastImageView
-        ref={e => (this._root = e)}
-        {...props}
-        defaultSource={resolvedDefaultSource}
-        source={resolvedSource}
-        circle={circle}
-        onFastImageLoadStart={onLoadStart}
-        onFastImageProgress={onProgress}
-        onFastImageLoad={onLoad}
-        onFastImageError={onError}
-        onFastImageLoadEnd={onLoadEnd}
-      />
+      <View style={[style, styles.imageContainer]} borderRadius={borderRadius}>
+        <FastImageView
+          ref={e => (this._root = e)}
+          {...props}
+          style={StyleSheet.absoluteFill}
+          source={resolvedSource}
+          defaultSource={resolvedDefaultSource}
+          onFastImageLoadStart={onLoadStart}
+          onFastImageProgress={onProgress}
+          onFastImageLoad={onLoad}
+          onFastImageError={onError}
+          onFastImageLoadEnd={onLoadEnd}
+        />
+      </View>
     )
   }
 }
+
+const styles = StyleSheet.create({
+  imageContainer: {
+    overflow: 'hidden'
+  }
+})
 
 FastImage.resizeMode = {
   contain: 'contain',
   cover: 'cover',
   stretch: 'stretch',
-  center: 'center',
+  center: 'center'
 }
 
 FastImage.priority = {
   low: 'low',
   normal: 'normal',
-  high: 'high',
+  high: 'high'
 }
 
 FastImage.preload = sources => {
@@ -84,25 +120,28 @@ FastImage.preload = sources => {
 }
 
 FastImage.defaultProps = {
-  resizeMode: FastImage.resizeMode.cover,
+  resizeMode: FastImage.resizeMode.cover
 }
 
 const FastImageSourcePropType = PropTypes.shape({
   uri: PropTypes.string,
   headers: PropTypes.objectOf(PropTypes.string),
-  priority: PropTypes.oneOf(Object.keys(FastImage.priority)),
+  priority: PropTypes.oneOf(Object.keys(FastImage.priority))
 })
 
 FastImage.propTypes = {
   ...ViewPropTypes,
   source: PropTypes.oneOfType([FastImageSourcePropType, PropTypes.number]),
-  defaultSource:PropTypes.oneOfType([FastImageSourcePropType, PropTypes.number]),
-  circle:PropTypes.bool,
+  defaultSource: PropTypes.oneOfType([
+    FastImageSourcePropType,
+    PropTypes.number
+  ]),
+  circle: PropTypes.bool,
   onLoadStart: PropTypes.func,
   onProgress: PropTypes.func,
   onLoad: PropTypes.func,
   onError: PropTypes.func,
-  onLoadEnd: PropTypes.func,
+  onLoadEnd: PropTypes.func
 }
 
 const FastImageView = requireNativeComponent('FastImageView', FastImage, {
@@ -111,8 +150,8 @@ const FastImageView = requireNativeComponent('FastImageView', FastImage, {
     onFastImageProgress: true,
     onFastImageLoad: true,
     onFastImageError: true,
-    onFastImageLoadEnd: true,
-  },
+    onFastImageLoadEnd: true
+  }
 })
 
 export default FastImage

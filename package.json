@@ -2,21 +2,10 @@
   "name": "react-native-letote-fast-image",
   "version": "1.0.0",
   "description": "🚩 FastImage, performant React Native image component.",
-  "keywords": [
-    "cache",
-    "cached",
-    "fastimage",
-    "image",
-    "priority"
-  ],
+  "keywords": ["cache", "cached", "fastimage", "image", "priority"],
   "license": "MIT",
   "author": "blakefang",
-  "files": [
-    "ios",
-    "android",
-    "utils",
-    "FastImage.js"
-  ],
+  "files": ["ios", "android", "utils", "FastImage.js", "index.d.ts"],
   "main": "FastImage.js",
   "directories": {
     "example": "example"
@@ -26,11 +15,13 @@
     "url": "git+https://github.com/fangasvsass/react-native-fast-image.git"
   },
   "scripts": {
-    "format": "prettier --write --no-semi --single-quote --trailing-comma all ./FastImage.js ./example/*.js ./example/fastImage/*.js ./server/*.js",
+    "format":
+      "prettier --write --no-semi --single-quote --trailing-comma all ./FastImage.js ./example/*.js ./example/fastImage/*.js ./server/*.js",
     "prepare": "git submodule update --init --recursive",
     "test": "yarn run test:pretty && yarn run test:jest",
     "test:jest": "jest *.js",
-    "test:pretty": "prettier-check --write --no-semi --single-quote --trailing-comma all ./FastImage.js ./example/*.js ./example/fastImage/*.js ./server/*.js"
+    "test:pretty":
+      "prettier-check --write --no-semi --single-quote --trailing-comma all ./FastImage.js ./example/*.js ./example/fastImage/*.js ./server/*.js"
   },
   "dependencies": {
     "prop-types": "^15.6.0"
@@ -45,15 +36,8 @@
     "react-native": "^0.50.4",
     "react-test-renderer": "16.0.0"
   },
-  "engines": {
-    "node": ">= 9.2.0",
-    "yarn": ">= 1.3.2"
-  },
   "jest": {
     "preset": "react-native",
-    "modulePathIgnorePatterns": [
-      "example",
-      "server"
-    ]
+    "modulePathIgnorePatterns": ["example", "server"]
   }
 }

@@ -6,7 +6,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  View,
+  View
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import FastImage from 'react-native-letote-fast-image'
@@ -28,13 +28,13 @@ const getImages = () => {
     return [
       `http://${baseUrl}:8080/pictures/ahmed-saffu-235616.jpg`,
       `http://${baseUrl}:8080/pictures/alex-bertha-236361.jpg`,
-      `http://${baseUrl}:8080/pictures/jaromir-kavan-233699.jpg`,
+      `http://${baseUrl}:8080/pictures/jaromir-kavan-233699.jpg`
     ]
   }
   return [
     getImageUrl('x58soEovG_M', IMAGE_SIZE_PX, IMAGE_SIZE_PX),
     getImageUrl('yPI7myL5eWY', IMAGE_SIZE_PX, IMAGE_SIZE_PX),
-    'https://qimg-staging.letote.cn/uploads/photo/5858/full_1516931609654.jpg',
+    'https://qimg-staging.letote.cn/uploads/photo/5858/full_1516931609654.jpg'
   ]
 }
 
@@ -42,11 +42,11 @@ const getTestProgressCallbacks = label => ({
   onLoadStart: () => console.log(`${label} - onLoadStart`),
   onProgress: e =>
     console.log(
-      `${label} - onProgress - ${e.nativeEvent.loaded / e.nativeEvent.total}`,
+      `${label} - onProgress - ${e.nativeEvent.loaded / e.nativeEvent.total}`
     ),
   onLoad: () => console.log(`${label} - onLoad`),
   onError: () => console.log(`${label} - onError`),
-  onLoadEnd: () => console.log(`${label} - onLoadEnd`),
+  onLoadEnd: () => console.log(`${label} - onLoadEnd`)
 })
 
 const images = getImages()
@@ -55,12 +55,12 @@ const images = getImages()
 FastImage.preload([
   {
     uri: 'https://facebook.github.io/react/img/logo_og.png',
-    headers: { Authorization: 'someAuthToken' },
+    headers: { Authorization: 'someAuthToken' }
   },
   {
     uri: 'https://facebook.github.io/react/img/logo_og.png',
-    headers: { Authorization: 'someAuthToken' },
-  },
+    headers: { Authorization: 'someAuthToken' }
+  }
 ])
 
 class FastImageExample extends Component {
@@ -91,17 +91,17 @@ class FastImageExample extends Component {
             <Text>• authentication (token)</Text>
             <Button title="Reload" onPress={this.onPressedReload} />
           </View>
-                    <FastImage
+          <FastImage
             style={styles.image}
             source={{
               uri: images[2] + this.state.bust,
               headers: {
-                token: TOKEN,
+                token: TOKEN
               },
-              priority: FastImage.priority.high,
+              priority: FastImage.priority.high
             }}
-             // circle={true}
-             // defaultSource={{uri:'https://qimg-staging.letote.cn/uploads/photo/5858/small_1516931609654.jpg'}}
+            // circle={true}
+            // defaultSource={{uri:'https://qimg-staging.letote.cn/uploads/photo/5858/small_1516931609654.jpg'}}
             {...getTestProgressCallbacks('3')}
           />
           <FastImage
@@ -109,9 +109,9 @@ class FastImageExample extends Component {
             source={{
               uri: images[0] + this.state.bust,
               headers: {
-                token: TOKEN,
+                token: TOKEN
               },
-              priority: FastImage.priority.low,
+              priority: FastImage.priority.low
             }}
             {...getTestProgressCallbacks('1')}
           />
@@ -120,13 +120,12 @@ class FastImageExample extends Component {
             source={{
               uri: images[1] + this.state.bust,
               headers: {
-                token: TOKEN,
+                token: TOKEN
               },
-              priority: FastImage.priority.normal,
+              priority: FastImage.priority.normal
             }}
             {...getTestProgressCallbacks('2')}
           />
-
         </ScrollView>
       </View>
     )
@@ -141,31 +140,31 @@ FastImageExample.navigationOptions = {
     return (
       <Icon name="ios-information-circle-outline" size={26} color={tintColor} />
     )
-  },
+  }
 }
 
 const styles = StyleSheet.create({
   bold: {
-    fontWeight: '900',
+    fontWeight: '900'
   },
   textContainer: {
     marginTop: 40,
-    marginBottom: 20,
+    marginBottom: 20
   },
   image: {
     height: 800,
     width: 500,
     backgroundColor: '#eee',
-    margin: 2,
+    margin: 2
   },
   container: {
-    flex: 1,
+    flex: 1
   },
   scrollContainer: {},
   scrollContentContainer: {
     alignItems: 'center',
-    flex: 0,
-  },
+    flex: 0
+  }
 })
 
 export default FastImageExample
