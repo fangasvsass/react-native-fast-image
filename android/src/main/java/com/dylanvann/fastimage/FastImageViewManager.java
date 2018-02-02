@@ -4,15 +4,14 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
+import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.request.RequestOptions;
-import com.facebook.react.bridge.Dynamic;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
@@ -20,8 +19,8 @@ import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
-import com.facebook.react.uimanager.annotations.ReactPropGroup;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +37,11 @@ import static com.dylanvann.fastimage.FastImageRequestListener.REACT_ON_LOAD_EVE
 
 class ImageViewWithUrl extends ImageView {
     public GlideUrl glideUrl;
+    public RequestBuilder requestBuilder;
+    public String defaultSource = "";
+    public String placeholder = "";
+    public boolean circle;
+    public Priority priority;
 
     public ImageViewWithUrl(Context context) {
         super(context);
@@ -49,13 +53,11 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
     private static final String REACT_CLASS = "FastImageView";
     private static final String REACT_ON_LOAD_START_EVENT = "onFastImageLoadStart";
     private static final String REACT_ON_PROGRESS_EVENT = "onFastImageProgress";
-    private static final Drawable TRANSPARENT_DRAWABLE = new ColorDrawable(Color.BLUE);
+    private static final Drawable TRANSPARENT_DRAWABLE = new ColorDrawable(Color.TRANSPARENT);
     private static final Map<String, List<ImageViewWithUrl>> VIEWS_FOR_URLS = new HashMap<>();
-    private  static RequestManager requestManager = null;
-    private  static RequestManager requestManagerThumb = null;
-    private boolean isloaded;
-    private String defaultSource="";
-    private boolean circle;
+    private static RequestManager requestManager = null;
+    private static RequestManager requestManagerThumb = null;
+
     @Override
     public String getName() {
         return REACT_CLASS;
@@ -64,81 +66,89 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
     @Override
     protected ImageViewWithUrl createViewInstance(ThemedReactContext reactContext) {
         requestManager = Glide.with(reactContext);
-        requestManagerThumb=Glide.with(reactContext);
+        requestManagerThumb = Glide.with(reactContext);
         return new ImageViewWithUrl(reactContext);
     }
 
-    @ReactPropGroup(names = {"defaultSource","circle","source"})
-    public void setSrc(ImageViewWithUrl view,int index, @Nullable Dynamic source) {
-        if(index ==0){
-            try {
-                defaultSource=source.asMap().getString("uri");
-                Log.i("index",index+"defaultSource"+defaultSource);
-            } catch (Exception e) {
-            }
-        }else if(index==0) {
-                circle=source.asBoolean();
-        }else{
-            if (source == null) {
-                // Cancel existing requests.
-                requestManager.clear(view);
-                if (view.glideUrl != null) {
-                    OkHttpProgressGlideModule.forget(view.glideUrl.toStringUrl());
-                }
-                // Clear the image.
-                view.setImageDrawable(null);
-                return;
-            }
-
-            // Get the GlideUrl which contains header info.
-            GlideUrl glideUrl = FastImageViewConverter.glideUrl(source.asMap());
-            view.glideUrl = glideUrl;
-
-            // Get priority.
-            final Priority priority = FastImageViewConverter.priority(source.asMap());
-
-            // Cancel existing request.
+    @ReactProp(name = "source")
+    public void setSrc(ImageViewWithUrl view, @Nullable ReadableMap source) {
+        if (source == null) {
+            // Cancel existing requests.
             requestManager.clear(view);
-
-            String key = glideUrl.toStringUrl();
-            OkHttpProgressGlideModule.expect(key, this);
-            List<ImageViewWithUrl> viewsForKey = VIEWS_FOR_URLS.get(key);
-            if (viewsForKey != null && !viewsForKey.contains(view)) {
-                viewsForKey.add(view);
-            } else if (viewsForKey == null) {
-                List<ImageViewWithUrl> newViewsForKeys = new ArrayList<ImageViewWithUrl>(Arrays.asList(view));
-                VIEWS_FOR_URLS.put(key, newViewsForKeys);
+            if (view.glideUrl != null) {
+                OkHttpProgressGlideModule.forget(view.glideUrl.toStringUrl());
             }
-
-            ThemedReactContext context = (ThemedReactContext) view.getContext();
-            RCTEventEmitter eventEmitter = context.getJSModule(RCTEventEmitter.class);
-            int viewId = view.getId();
-            eventEmitter.receiveEvent(viewId, REACT_ON_LOAD_START_EVENT, new WritableNativeMap());
-
-            RequestOptions options = new RequestOptions()
-                    .priority(priority)
-                    .placeholder(TRANSPARENT_DRAWABLE);
-
-            if(circle)
-                requestManager
-                        .load(glideUrl)
-                        .thumbnail(requestManagerThumb.load(defaultSource))
-                        .apply(options)
-                        .apply(RequestOptions.circleCropTransform())
-                        .listener(new FastImageRequestListener(key))
-                        .into(view);
-            else
-                requestManager
-                        .load(glideUrl)
-                        .thumbnail(requestManagerThumb.load(defaultSource))
-                        .apply(options)
-                        .listener(new FastImageRequestListener(key))
-                        .into(view);
+            // Clear the image.
+            view.setImageDrawable(null);
+            return;
         }
+
+        // Get the GlideUrl which contains header info.
+        GlideUrl glideUrl = FastImageViewConverter.glideUrl(source);
+        view.glideUrl = glideUrl;
+
+        // Get priority.
+        view.priority = FastImageViewConverter.priority(source);
+
+        // Cancel existing request.
+        requestManager.clear(view);
+
+        String key = glideUrl.toStringUrl();
+        OkHttpProgressGlideModule.expect(key, this);
+        List<ImageViewWithUrl> viewsForKey = VIEWS_FOR_URLS.get(key);
+        if (viewsForKey != null && !viewsForKey.contains(view)) {
+            viewsForKey.add(view);
+        } else if (viewsForKey == null) {
+            List<ImageViewWithUrl> newViewsForKeys = new ArrayList<ImageViewWithUrl>(Arrays.asList(view));
+            VIEWS_FOR_URLS.put(key, newViewsForKeys);
+        }
+
+        ThemedReactContext context = (ThemedReactContext) view.getContext();
+        RCTEventEmitter eventEmitter = context.getJSModule(RCTEventEmitter.class);
+        int viewId = view.getId();
+        eventEmitter.receiveEvent(viewId, REACT_ON_LOAD_START_EVENT, new WritableNativeMap());
 
     }
 
+    @Override
+    protected void onAfterUpdateTransaction(ImageViewWithUrl view) {
+        super.onAfterUpdateTransaction(view);
+        RequestOptions options = new RequestOptions()
+                .priority(view.priority)
+                .placeholder(TRANSPARENT_DRAWABLE);
 
+        if (view.circle) {
+            RequestOptions op = RequestOptions.circleCropTransform();
+            options = options.apply(op);
+        }
+        requestManager
+                .load(view.glideUrl.toStringUrl())
+                .thumbnail(requestManagerThumb.load(view.defaultSource))
+                .apply(options)
+                .listener(new FastImageRequestListener(view.glideUrl.toStringUrl()))
+                .into(view);
+    }
+
+    @ReactProp(name = "circle")
+    public void setCircle(ImageViewWithUrl view, Boolean circle) {
+        try {
+            view.circle = circle;
+        } catch (Exception e) {
+        }
+    }
+
+    @ReactProp(name = "defaultSource")
+    public void setDefaultSource(ImageViewWithUrl view, @Nullable ReadableMap defaultSource) {
+        try {
+            view.defaultSource = defaultSource.getString("uri");
+        } catch (Exception e) {
+        }
+    }
+
+    @ReactProp(name = "placeholder")
+    public void setPlaceholder(ImageViewWithUrl view, @Nullable ReadableMap placeholder) {
+
+    }
     @ReactProp(name = "resizeMode")
     public void setResizeMode(ImageViewWithUrl view, String resizeMode) {
         final ImageViewWithUrl.ScaleType scaleType = FastImageViewConverter.scaleType(resizeMode);
@@ -180,7 +190,7 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
     public void onProgress(String key, long bytesRead, long expectedLength) {
         List<ImageViewWithUrl> viewsForKey = VIEWS_FOR_URLS.get(key);
         if (viewsForKey != null) {
-            for (ImageViewWithUrl view: viewsForKey) {
+            for (ImageViewWithUrl view : viewsForKey) {
                 WritableMap event = new WritableNativeMap();
                 event.putInt("loaded", (int) bytesRead);
                 event.putInt("total", (int) expectedLength);
