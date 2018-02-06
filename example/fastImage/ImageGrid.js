@@ -17,25 +17,25 @@ class ImageGrid extends Component {
 
   state = {
     images: [],
-    itemHeight: 0,
+    itemHeight: 0
   }
 
   _onLayout = e => {
     const width = e.nativeEvent.layout.width
     this.setState({
-      itemHeight: width / 4,
+      itemHeight: width / 4
     })
   }
 
   _onFetchImagesError = () => {
     this.setState({
-      error: true,
+      error: true
     })
   }
 
   _onFetchImagesSuccess = images => {
     this.setState({
-      images,
+      images
     })
   }
 
@@ -73,7 +73,7 @@ class ImageGrid extends Component {
           style={styles.list}
           columnWrapperStyle={[
             styles.columnWrapper,
-            { height: this.state.itemHeight },
+            { height: this.state.itemHeight }
           ]}
           data={this.state.images}
           renderItem={this._renderItem}
@@ -94,32 +94,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'stretch',
-    justifyContent: 'center',
+    justifyContent: 'center'
   },
   text: {
-    textAlign: 'center',
+    textAlign: 'center'
   },
   list: {
     marginTop: STATUS_BAR_HEIGHT,
-    flex: 1,
+    flex: 1
   },
   columnWrapper: {
     flex: 1,
     flexDirection: 'row',
     marginLeft: -MARGIN,
-    marginRight: -MARGIN,
+    marginRight: -MARGIN
   },
   image: {
     flex: 1,
     width: null,
     height: null,
     margin: MARGIN,
-    backgroundColor: '#eee',
+    backgroundColor: '#eee'
   },
   imageContainer: {
     flex: 1,
-    alignItems: 'stretch',
-  },
+    alignItems: 'stretch'
+  }
 })
 
 export default ImageGrid

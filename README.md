@@ -38,7 +38,11 @@ and
 - [x] Prioritize images.
 - [x] Preload images.
 - [x] GIF support.
+<<<<<<< HEAD
 - [x] Border radius property.
+=======
+- [x] borderRadius support.
+>>>>>>> upstreampr/master
 
 ## Usage
 

@@ -10,7 +10,7 @@
 		"react": "16.0.0",
 		"react-native": "0.52.0",
 		"react-native-cookies": "^3.2.0",
-		"react-native-letote-fast-image": "file:../react-native-letote-fast-image-1.0.0.tgz",
+		"react-native-letote-fast-image": "file:../react-native-letote-fast-image-1.0.7.tgz",
 		"react-native-vector-icons": "^4.5.0",
 		"react-navigation": "^1.0.0-beta.21",
 		"react-timeout": "^1.0.1",

@@ -11,6 +11,7 @@ import com.bumptech.glide.integration.okhttp3.OkHttpUrlLoader;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.module.LibraryGlideModule;
 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -32,11 +33,11 @@ import okio.Source;
 public class OkHttpProgressGlideModule extends LibraryGlideModule {
     @Override
     public void registerComponents(Context context, Glide glide, Registry registry) {
-        OkHttpClient client = new OkHttpClient
-                .Builder()
+        OkHttpClient client = new OkHttpClient().newBuilder()
                 .addInterceptor(createInterceptor(new DispatchingProgressListener()))
                 .build();
         registry.replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory(client));
+     //   registry.replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory());
     }
 
     private static Interceptor createInterceptor(final ResponseProgressListener listener) {
@@ -147,7 +148,7 @@ public class OkHttpProgressGlideModule extends LibraryGlideModule {
         }
 
         @Override
-        public BufferedSource source() {
+        public BufferedSource source()  {
             if (bufferedSource == null) {
                 bufferedSource = Okio.buffer(source(responseBody.source()));
             }

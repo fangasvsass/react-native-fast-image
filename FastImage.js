@@ -30,7 +30,6 @@ class FastImage extends Component {
       onLoadEnd,
       style,
       children,
-      borderRadius,
       ...props
     } = this.props
 
@@ -54,44 +53,21 @@ class FastImage extends Component {
 
     const resolvedSource = resolveAssetSource(source)
     const resolvedDefaultSource = resolveAssetSource(defaultSource)
-    if (children) {
-      throw new Error(
-        'The <FastImage> component cannot contain children. If you want to render content on top of the image consider using absolute positioning.'
-      )
-    }
-
-    if (!borderRadius) {
-      return (
-        <FastImageView
-          ref={e => (this._root = e)}
-          {...props}
-          style={style}
-          source={resolvedSource}
-          defaultSource={resolvedDefaultSource}
-          onFastImageLoadStart={onLoadStart}
-          onFastImageProgress={onProgress}
-          onFastImageLoad={onLoad}
-          onFastImageError={onError}
-          onFastImageLoadEnd={onLoadEnd}
-        />
-      )
-    }
 
     return (
-      <View style={[style, styles.imageContainer]} borderRadius={borderRadius}>
-        <FastImageView
-          ref={e => (this._root = e)}
-          {...props}
-          style={StyleSheet.absoluteFill}
-          source={resolvedSource}
-          defaultSource={resolvedDefaultSource}
-          onFastImageLoadStart={onLoadStart}
-          onFastImageProgress={onProgress}
-          onFastImageLoad={onLoad}
-          onFastImageError={onError}
-          onFastImageLoadEnd={onLoadEnd}
-        />
-      </View>
+      <FastImageView
+        ref={e => (this._root = e)}
+        {...props}
+        style={style}
+        circle={circle}
+        source={resolvedSource}
+        defaultSource={resolvedDefaultSource}
+        onFastImageLoadStart={onLoadStart}
+        onFastImageProgress={onProgress}
+        onFastImageLoad={onLoad}
+        onFastImageError={onError}
+        onFastImageLoadEnd={onLoadEnd}
+      />
     )
   }
 }

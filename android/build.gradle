@@ -12,7 +12,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.1"
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
         minSdkVersion 16
@@ -30,11 +30,24 @@ repositories {
     maven {
         url "https://maven.google.com"
     }
+    jcenter()
 }
+
 
 dependencies {
     compile 'com.facebook.react:react-native:+'
-    compile group: 'com.github.bumptech.glide', name: 'glide', version: '4.3.1'
-    compile group: 'com.github.bumptech.glide', name: 'okhttp3-integration', version: '4.3.1'
-    compile 'com.android.support:support-v4:26.0.1'
+    // compile ("com.github.bumptech.glide:glide:4.6.1@aar"){
+    //     exclude group: "com.android.support"
+    //     transitive = true
+    // }
+    // compile "com.github.bumptech.glide:okhttp3-integration:4.6.1@aar"
+    compile ("com.github.bumptech.glide:glide:4.6.1@aar"){
+         exclude group: "com.android.support"
+         transitive = true
+     }
+    compile "com.github.bumptech.glide:okhttp3-integration:4.6.1@aar"
+    compile 'com.android.support:support-v4:26.0.2'
+    compile 'com.github.bumptech.glide:annotations:4.4.0'
+    compile 'jp.wasabeef:glide-transformations:3.1.0'
+
 }

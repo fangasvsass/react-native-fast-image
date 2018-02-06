@@ -8,6 +8,7 @@ import BorderRadiusExample from './BorderRadiusExample'
 import FeatureText from './FeatureText'
 import ProgressExample from './ProgressExample'
 import PreloadExample from './PreloadExample'
+import FastImage from 'react-native-letote-fast-image'
 import StatusBarUnderlay, { STATUS_BAR_HEIGHT } from './StatusBarUnderlay'
 
 const FastImageExample = () => (
@@ -17,6 +18,7 @@ const FastImageExample = () => (
       barStyle="dark-content"
       backgroundColor="transparent"
     />
+
     <ScrollView
       style={styles.scrollContainer}
       contentContainerStyle={styles.scrollContentContainer}
@@ -44,37 +46,44 @@ FastImageExample.navigationOptions = {
       ? 'ios-information-circle'
       : 'ios-information-circle-outline'
     return <Icon name={name} size={26} color={tintColor} />
-  },
+  }
 }
 
 const styles = StyleSheet.create({
   titleText: {
     fontWeight: '900',
     marginBottom: 20,
-    color: '#222',
+    color: '#222'
   },
   contentContainer: {
     marginTop: 20,
-    marginBottom: 20,
+    marginBottom: 20
   },
   image: {
     flex: 1,
     height: 100,
     backgroundColor: '#ddd',
     margin: 10,
+    borderRadius: 10
+  },
+  image1: {
+    margin: 20,
+    height: 300,
+    width: 200,
+    borderRadius: 10
   },
   container: {
     flex: 1,
     alignItems: 'stretch',
-    backgroundColor: '#fff',
+    backgroundColor: '#fff'
   },
   scrollContainer: {
-    marginTop: STATUS_BAR_HEIGHT,
+    marginTop: STATUS_BAR_HEIGHT
   },
   scrollContentContainer: {
     alignItems: 'stretch',
-    flex: 0,
-  },
+    flex: 0
+  }
 })
 
 export default FastImageExample

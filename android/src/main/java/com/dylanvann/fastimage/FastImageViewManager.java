@@ -1,17 +1,25 @@
 package com.dylanvann.fastimage;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.text.TextUtils;
+import android.util.Log;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.MultiTransformation;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.Transformation;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
+import com.bumptech.glide.load.resource.bitmap.FitCenter;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.ImageViewTarget;
@@ -20,17 +28,24 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.common.MapBuilder;
+import com.facebook.react.uimanager.FloatUtil;
+import com.facebook.react.uimanager.PixelUtil;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
+import com.facebook.react.uimanager.ViewProps;
 import com.facebook.react.uimanager.annotations.ReactProp;
+import com.facebook.react.uimanager.annotations.ReactPropGroup;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
+import com.facebook.yoga.YogaConstants;
 
+import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.WeakHashMap;
 
 import javax.annotation.Nullable;
 
@@ -38,13 +53,16 @@ import static com.dylanvann.fastimage.FastImageRequestListener.REACT_ON_ERROR_EV
 import static com.dylanvann.fastimage.FastImageRequestListener.REACT_ON_LOAD_END_EVENT;
 import static com.dylanvann.fastimage.FastImageRequestListener.REACT_ON_LOAD_EVENT;
 
+import jp.wasabeef.glide.transformations.RoundedCornersTransformation;
 
 class ImageViewWithUrl extends ImageView {
-    public GlideUrl glideUrl;
     public String defaultSource = "";
-    public String placeholder = "";
     public boolean circle;
+    public GlideUrl glideUrl;
+    public float borderRadius = YogaConstants.UNDEFINED;
+    public float[] borderCornerRadii;
     public Priority priority;
+    public String resizeMode;
 
     public ImageViewWithUrl(Context context) {
         super(context);
@@ -52,14 +70,23 @@ class ImageViewWithUrl extends ImageView {
 }
 
 class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implements ProgressListener {
-
     private static final String REACT_CLASS = "FastImageView";
     private static final String REACT_ON_LOAD_START_EVENT = "onFastImageLoadStart";
     private static final String REACT_ON_PROGRESS_EVENT = "onFastImageProgress";
     private static final Drawable TRANSPARENT_DRAWABLE = new ColorDrawable(Color.TRANSPARENT);
-    private static final Map<String, List<ImageViewWithUrl>> VIEWS_FOR_URLS = new HashMap<>();
     private static RequestManager requestManager = null;
-    private static RequestManager requestManagerThumb = null;
+    private final Map<String, List<ImageViewWithUrl>> VIEWS_FOR_URLS = new WeakHashMap<>();
+    private RequestOptions options = new RequestOptions();
+    private RequestOptions circleCrop = RequestOptions.circleCropTransform();
+    private RequestOptions fitCenter = RequestOptions.fitCenterTransform();
+    private RequestOptions centerCrop = RequestOptions.centerCropTransform();
+    private MultiTransformation multiTransformation = new MultiTransformation(new FitCenter(), new CircleCrop());
+    private RoundedCornersTransformation.CornerType[] CORNER_TYPES = {
+            RoundedCornersTransformation.CornerType.TOP_LEFT,
+            RoundedCornersTransformation.CornerType.TOP_RIGHT,
+            RoundedCornersTransformation.CornerType.BOTTOM_RIGHT,
+            RoundedCornersTransformation.CornerType.BOTTOM_LEFT
+    };
 
     @Override
     public String getName() {
@@ -69,7 +96,6 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
     @Override
     protected ImageViewWithUrl createViewInstance(ThemedReactContext reactContext) {
         requestManager = Glide.with(reactContext);
-        requestManagerThumb = Glide.with(reactContext);
         return new ImageViewWithUrl(reactContext);
     }
 
@@ -89,48 +115,101 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
         // Get the GlideUrl which contains header info.
         GlideUrl glideUrl = FastImageViewConverter.glideUrl(source);
         view.glideUrl = glideUrl;
-
         // Get priority.
-        view.priority = FastImageViewConverter.priority(source);
+        final Priority priority = FastImageViewConverter.priority(source);
+        view.priority = priority;
+    }
 
-        // Cancel existing request.
-        requestManager.clear(view);
+    @ReactProp(name = ViewProps.RESIZE_MODE)
+    public void setResizeMode(ImageViewWithUrl view, String resizeMode) {
+        view.resizeMode = resizeMode;
+    }
 
-        String key = glideUrl.toStringUrl();
+
+//    @ReactPropGroup(names = {
+//            ViewProps.BORDER_WIDTH,
+//            ViewProps.BORDER_LEFT_WIDTH,
+//            ViewProps.BORDER_TOP_WIDTH,
+//            ViewProps.BORDER_RIGHT_WIDTH,
+//            ViewProps.BORDER_BOTTOM_WIDTH
+//    }, defaultFloat = YogaConstants.UNDEFINED)
+//    public void setBorderRadius(ImageViewWithUrl view, int index, float borderRadius) {
+//        float borderRadiusPX = YogaConstants.UNDEFINED;
+//        if (YogaConstants.UNDEFINED != borderRadius) {
+//            borderRadiusPX = PixelUtil.toPixelFromDIP(borderRadius);
+//        }
+//        if (index == 0) {
+//            view.setBorderRadius(borderRadiusPX);
+//        } else {
+//            view.setBorderRadius(borderRadiusPX, index - 1);
+//        }
+//    }
+
+
+    @Override
+    protected void onAfterUpdateTransaction(ImageViewWithUrl view) {
+        super.onAfterUpdateTransaction(view);
+        String key = view.glideUrl.toStringUrl();
         OkHttpProgressGlideModule.expect(key, this);
         List<ImageViewWithUrl> viewsForKey = VIEWS_FOR_URLS.get(key);
         if (viewsForKey != null && !viewsForKey.contains(view)) {
             viewsForKey.add(view);
         } else if (viewsForKey == null) {
-            List<ImageViewWithUrl> newViewsForKeys = new ArrayList<ImageViewWithUrl>(Arrays.asList(view));
+            List<ImageViewWithUrl> newViewsForKeys = new ArrayList(Arrays.asList(view));
             VIEWS_FOR_URLS.put(key, newViewsForKeys);
         }
-
         ThemedReactContext context = (ThemedReactContext) view.getContext();
         RCTEventEmitter eventEmitter = context.getJSModule(RCTEventEmitter.class);
         int viewId = view.getId();
         eventEmitter.receiveEvent(viewId, REACT_ON_LOAD_START_EVENT, new WritableNativeMap());
+        options.priority(view.priority).placeholder(TRANSPARENT_DRAWABLE);
 
-    }
-
-    @Override
-    protected void onAfterUpdateTransaction(ImageViewWithUrl view) {
-        super.onAfterUpdateTransaction(view);
-        RequestOptions options = new RequestOptions()
-                .priority(view.priority)
-                .placeholder(TRANSPARENT_DRAWABLE);
-
-        if (view.circle) {
-            RequestOptions op = RequestOptions.circleCropTransform();
-            options = options.apply(op);
+//        if (YogaConstants.UNDEFINED != view.borderRadius) {
+//            options = options.apply(bitmapTransform(new BlurTransformation((int) view.borderRadius)));
+//        }
+//        if (view.borderCornerRadii != null) {
+//            List<Transformation> transformations = new ArrayList<>()
+//            MultiTransformation multi;
+//            RoundedCornersTransformation.CornerType cornerType;
+//            for (int i = 0; i < view.borderCornerRadii.length; i++) {
+//                if (YogaConstants.UNDEFINED != view.borderCornerRadii[i]) {
+//                    continue;
+//                }
+//                cornerType = CORNER_TYPES[i];
+//                transformations.add(new RoundedCornersTransformation((int) view.borderCornerRadii[i], 0,
+//                        cornerType));
+//            }
+//            multi = new MultiTransformation(transformations);
+//            options = options.apply(bitmapTransform(multi));
+//
+//        }
+        if (view.circle && "cover".equals(view.resizeMode)) {
+            options = options.apply(bitmapTransform(multiTransformation));
+        } else {
+            if (view.circle) {
+                options = options.apply(circleCrop);
+            } else if ("cover".equals(view.resizeMode)) {
+                options = options.apply(fitCenter);
+            }
+            ImageViewWithUrl.ScaleType scaleType = FastImageViewConverter.scaleType(view.resizeMode);
+            view.setScaleType(scaleType);
         }
-        requestManager
-                .load(view.glideUrl.toStringUrl())
-                .thumbnail(requestManagerThumb.load(view.defaultSource))
-                .apply(options)
-                .listener(LISTENER)
-                .into(view);
+        if (TextUtils.isEmpty(view.defaultSource)) {
+            requestManager
+                    .load(view.glideUrl.toStringUrl())
+                    .apply(options)
+                    .listener(LISTENER)
+                    .into(view);
+
+        } else
+            requestManager
+                    .load(view.glideUrl.toStringUrl())
+                    .thumbnail(requestManager.load(view.defaultSource))
+                    .apply(options)
+                    .listener(LISTENER)
+                    .into(view);
     }
+
 
     @ReactProp(name = "circle")
     public void setCircle(ImageViewWithUrl view, Boolean circle) {
@@ -147,16 +226,11 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
         } catch (Exception e) {
         }
     }
-    @ReactProp(name = "resizeMode")
-    public void setResizeMode(ImageViewWithUrl view, String resizeMode) {
-        final ImageViewWithUrl.ScaleType scaleType = FastImageViewConverter.scaleType(resizeMode);
-        view.setScaleType(scaleType);
-    }
 
     @Override
     public void onDropViewInstance(ImageViewWithUrl view) {
         // This will cancel existing requests.
-        requestManager.clear(view);
+        //  requestManager.clear(view);
         final String key = view.glideUrl.toStringUrl();
         OkHttpProgressGlideModule.forget(key);
         List<ImageViewWithUrl> viewsForKey = VIEWS_FOR_URLS.get(key);
@@ -200,7 +274,7 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
         }
     }
 
-    private static RequestListener< Drawable> LISTENER = new RequestListener<Drawable>() {
+    private static RequestListener<Drawable> LISTENER = new RequestListener<Drawable>() {
         @Override
         public boolean onLoadFailed(@android.support.annotation.Nullable GlideException e, Object model,
                                     Target<Drawable> target, boolean isFirstResource) {

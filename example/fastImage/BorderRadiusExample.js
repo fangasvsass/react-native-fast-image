@@ -14,20 +14,55 @@ const BorderRadiusExample = ({ onPressReload, bust }) => (
       <FeatureText text="• Border radius." />
     </Section>
     <SectionFlex onPress={onPressReload}>
-      <FastImage
-        style={styles.imageSquare}
-        borderRadius={50}
-        source={{
-          uri: IMAGE_URL + bust
-        }}
-      />
+      <View>
+        <FastImage
+          style={styles.imageSquare}
+          // borderRadius={50}
+          source={{
+            uri: IMAGE_URL + bust
+          }}
+        />
+      </View>
+
       <FastImage
         style={styles.imageRectangular}
-        borderRadius={50}
+        // borderRadius={50}
         source={{
           uri: IMAGE_URL + bust
         }}
       />
+      </SectionFlex>
+      <SectionFlex onPress={onPressReload}>
+            <FastImage
+        style={styles.imageRectangular}
+        // borderRadius={50}
+        source={{
+          uri: IMAGE_URL + bust
+        }}
+        // circle = {true}
+         resizeMode="cover"
+      />
+      </SectionFlex>
+      <SectionFlex onPress={onPressReload}>
+            <FastImage
+        style={styles.imageRectangular}
+        // borderRadius={50}
+        source={{
+          uri: IMAGE_URL + bust
+        }}
+        // resizeMode="stretch"
+      />
+      </SectionFlex>
+      <SectionFlex onPress={onPressReload}>
+            <FastImage
+        style={styles.imageRectangular}
+        // borderRadius={50}
+        source={{
+          uri: IMAGE_URL + bust
+        }}
+        // resizeMode="center"
+      />
+
     </SectionFlex>
   </View>
 )
@@ -41,6 +76,7 @@ const styles = StyleSheet.create({
     flex: 0
   },
   imageRectangular: {
+    // borderRadius: 10,
     height: 100,
     backgroundColor: '#ddd',
     margin: 20,
