@@ -3,6 +3,7 @@ package com.dylanvann.fastimage;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.Registry;
@@ -31,13 +32,16 @@ import okio.Source;
 
 @GlideModule
 public class OkHttpProgressGlideModule extends LibraryGlideModule {
+    OkHttpClient client;
     @Override
     public void registerComponents(Context context, Glide glide, Registry registry) {
-        OkHttpClient client = new OkHttpClient().newBuilder()
-                .addInterceptor(createInterceptor(new DispatchingProgressListener()))
-                .build();
-        registry.replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory(client));
-     //   registry.replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory());
+        if(client==null) {
+            client = new OkHttpClient().newBuilder()
+                    .addInterceptor(createInterceptor(new DispatchingProgressListener()))
+                    .build();
+            registry.replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory(client));
+        }
+        //   registry.replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory());
     }
 
     private static Interceptor createInterceptor(final ResponseProgressListener listener) {

@@ -13,7 +13,9 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.load.MultiTransformation;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.Transformation;
@@ -59,8 +61,6 @@ class ImageViewWithUrl extends ImageView {
     public String defaultSource = "";
     public boolean circle;
     public GlideUrl glideUrl;
-    public float borderRadius = YogaConstants.UNDEFINED;
-    public float[] borderCornerRadii;
     public Priority priority;
     public String resizeMode;
 
@@ -75,18 +75,20 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
     private static final String REACT_ON_PROGRESS_EVENT = "onFastImageProgress";
     private static final Drawable TRANSPARENT_DRAWABLE = new ColorDrawable(Color.TRANSPARENT);
     private static RequestManager requestManager = null;
-    private final Map<String, List<ImageViewWithUrl>> VIEWS_FOR_URLS = new WeakHashMap<>();
-    private RequestOptions options = new RequestOptions();
+    private final Map<String, List<ImageViewWithUrl>> VIEWS_FOR_URLS = new HashMap<>();
     private RequestOptions circleCrop = RequestOptions.circleCropTransform();
-    private RequestOptions fitCenter = RequestOptions.fitCenterTransform();
-    private RequestOptions centerCrop = RequestOptions.centerCropTransform();
-    private MultiTransformation multiTransformation = new MultiTransformation(new FitCenter(), new CircleCrop());
-    private RoundedCornersTransformation.CornerType[] CORNER_TYPES = {
-            RoundedCornersTransformation.CornerType.TOP_LEFT,
-            RoundedCornersTransformation.CornerType.TOP_RIGHT,
-            RoundedCornersTransformation.CornerType.BOTTOM_RIGHT,
-            RoundedCornersTransformation.CornerType.BOTTOM_LEFT
-    };
+    //    private RequestOptions fitCenter = RequestOptions.fitCenterTransform();
+//    private RequestOptions centerCrop = RequestOptions.centerCropTransform();
+//    private MultiTransformation multiTransformation = new MultiTransformation(new FitCenter(), new CircleCrop());
+    RequestOptions options;
+
+    public FastImageViewManager() {
+        options = new RequestOptions();
+        options.format(DecodeFormat.PREFER_RGB_565)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .dontTransform()
+                .placeholder(TRANSPARENT_DRAWABLE);
+    }
 
     @Override
     public String getName() {
@@ -95,7 +97,9 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
 
     @Override
     protected ImageViewWithUrl createViewInstance(ThemedReactContext reactContext) {
-        requestManager = Glide.with(reactContext);
+        if (requestManager == null) {
+            requestManager = Glide.with(reactContext.getApplicationContext());
+        }
         return new ImageViewWithUrl(reactContext);
     }
 
@@ -111,13 +115,13 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
             view.setImageDrawable(null);
             return;
         }
-
         // Get the GlideUrl which contains header info.
         GlideUrl glideUrl = FastImageViewConverter.glideUrl(source);
         view.glideUrl = glideUrl;
         // Get priority.
         final Priority priority = FastImageViewConverter.priority(source);
         view.priority = priority;
+        requestManager.clear(view);
     }
 
     @ReactProp(name = ViewProps.RESIZE_MODE)
@@ -126,29 +130,8 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
     }
 
 
-//    @ReactPropGroup(names = {
-//            ViewProps.BORDER_WIDTH,
-//            ViewProps.BORDER_LEFT_WIDTH,
-//            ViewProps.BORDER_TOP_WIDTH,
-//            ViewProps.BORDER_RIGHT_WIDTH,
-//            ViewProps.BORDER_BOTTOM_WIDTH
-//    }, defaultFloat = YogaConstants.UNDEFINED)
-//    public void setBorderRadius(ImageViewWithUrl view, int index, float borderRadius) {
-//        float borderRadiusPX = YogaConstants.UNDEFINED;
-//        if (YogaConstants.UNDEFINED != borderRadius) {
-//            borderRadiusPX = PixelUtil.toPixelFromDIP(borderRadius);
-//        }
-//        if (index == 0) {
-//            view.setBorderRadius(borderRadiusPX);
-//        } else {
-//            view.setBorderRadius(borderRadiusPX, index - 1);
-//        }
-//    }
-
-
     @Override
     protected void onAfterUpdateTransaction(ImageViewWithUrl view) {
-        super.onAfterUpdateTransaction(view);
         String key = view.glideUrl.toStringUrl();
         OkHttpProgressGlideModule.expect(key, this);
         List<ImageViewWithUrl> viewsForKey = VIEWS_FOR_URLS.get(key);
@@ -162,43 +145,25 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
         RCTEventEmitter eventEmitter = context.getJSModule(RCTEventEmitter.class);
         int viewId = view.getId();
         eventEmitter.receiveEvent(viewId, REACT_ON_LOAD_START_EVENT, new WritableNativeMap());
-        options.priority(view.priority).placeholder(TRANSPARENT_DRAWABLE);
+//        options.priority(view.priority);
 
-//        if (YogaConstants.UNDEFINED != view.borderRadius) {
-//            options = options.apply(bitmapTransform(new BlurTransformation((int) view.borderRadius)));
-//        }
-//        if (view.borderCornerRadii != null) {
-//            List<Transformation> transformations = new ArrayList<>()
-//            MultiTransformation multi;
-//            RoundedCornersTransformation.CornerType cornerType;
-//            for (int i = 0; i < view.borderCornerRadii.length; i++) {
-//                if (YogaConstants.UNDEFINED != view.borderCornerRadii[i]) {
-//                    continue;
-//                }
-//                cornerType = CORNER_TYPES[i];
-//                transformations.add(new RoundedCornersTransformation((int) view.borderCornerRadii[i], 0,
-//                        cornerType));
-//            }
-//            multi = new MultiTransformation(transformations);
-//            options = options.apply(bitmapTransform(multi));
-//
-//        }
-        if (view.circle && "cover".equals(view.resizeMode)) {
-            options = options.apply(bitmapTransform(multiTransformation));
-        } else {
-            if (view.circle) {
-                options = options.apply(circleCrop);
-            } else if ("cover".equals(view.resizeMode)) {
-                options = options.apply(fitCenter);
-            }
-            ImageViewWithUrl.ScaleType scaleType = FastImageViewConverter.scaleType(view.resizeMode);
-            view.setScaleType(scaleType);
+//        if (view.circle && "cover".equals(view.resizeMode)) {
+//            options = options.apply(bitmapTransform(multiTransformation));
+//        } else {
+        if (view.circle) {
+            options = options.apply(circleCrop);
         }
+//            else if ("cover".equals(view.resizeMode)) {
+//                options = options.apply(fitCenter);
+//            }
+        ImageViewWithUrl.ScaleType scaleType = FastImageViewConverter.scaleType(view.resizeMode);
+        view.setScaleType(scaleType);
+//        }
         if (TextUtils.isEmpty(view.defaultSource)) {
             requestManager
                     .load(view.glideUrl.toStringUrl())
                     .apply(options)
-                    .listener(LISTENER)
+//                    .listener(LISTENER)
                     .into(view);
 
         } else
@@ -206,8 +171,9 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
                     .load(view.glideUrl.toStringUrl())
                     .thumbnail(requestManager.load(view.defaultSource))
                     .apply(options)
-                    .listener(LISTENER)
+//                    .listener(LISTENER)
                     .into(view);
+        super.onAfterUpdateTransaction(view);
     }
 
 
@@ -230,7 +196,7 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl> implement
     @Override
     public void onDropViewInstance(ImageViewWithUrl view) {
         // This will cancel existing requests.
-        //  requestManager.clear(view);
+        requestManager.clear(view);
         final String key = view.glideUrl.toStringUrl();
         OkHttpProgressGlideModule.forget(key);
         List<ImageViewWithUrl> viewsForKey = VIEWS_FOR_URLS.get(key);
