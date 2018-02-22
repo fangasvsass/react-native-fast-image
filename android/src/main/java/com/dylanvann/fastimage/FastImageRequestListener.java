@@ -16,14 +16,13 @@ public class FastImageRequestListener implements RequestListener<Drawable> {
     public static final String REACT_ON_LOAD_EVENT = "onFastImageLoad";
     public static final String REACT_ON_LOAD_END_EVENT = "onFastImageLoadEnd";
     private static String key = null;
-
+    
     public FastImageRequestListener(String key) {
         this.key = key;
     }
-
+    
     @Override
     public boolean onLoadFailed(@android.support.annotation.Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-        OkHttpProgressGlideModule.forget(key);
         if (!(target instanceof ImageViewTarget)) {
             return false;
         }
@@ -35,7 +34,7 @@ public class FastImageRequestListener implements RequestListener<Drawable> {
         eventEmitter.receiveEvent(viewId, REACT_ON_LOAD_END_EVENT, new WritableNativeMap());
         return false;
     }
-
+    
     @Override
     public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
         if (!(target instanceof ImageViewTarget)) {
@@ -50,3 +49,4 @@ public class FastImageRequestListener implements RequestListener<Drawable> {
         return false;
     }
 }
+
