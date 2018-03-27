@@ -12,10 +12,12 @@ typedef NS_ENUM(NSInteger, FFFPriority) {
 @interface FFFastImageSource : NSObject
 
 @property (nonatomic) NSURL* uri;
+@property (nonatomic) NSString* defaultUrl;
 @property (nonatomic) FFFPriority priority;
 @property (nonatomic) NSDictionary *headers;
 
 - (instancetype)initWithURL:(NSURL *)url
+                 defaultUrl:(NSString *)defaultUrl
                    priority:(FFFPriority)priority
                     headers:(NSDictionary *)headers;
 

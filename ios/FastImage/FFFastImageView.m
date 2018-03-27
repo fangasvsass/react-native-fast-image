@@ -1,4 +1,5 @@
 #import "FFFastImageView.h"
+#import <SDWebImage/SDImageCache.h>
 
 @implementation FFFastImageView {
     BOOL hasSentOnLoadStart;
@@ -23,15 +24,16 @@
     }
 }
 
+
 - (void)setSource:(FFFastImageSource *)source {
     if (_source != source) {
         _source = source;
-
+        
         // Set headers.
         [_source.headers enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSString* header, BOOL *stop) {
             [[SDWebImageDownloader sharedDownloader] setValue:header forHTTPHeaderField:key];
         }];
-
+        
         // Set priority.
         SDWebImageOptions options = 0;
         options |= SDWebImageRetryFailed;
@@ -46,25 +48,27 @@
                 options |= SDWebImageHighPriority;
                 break;
         }
-
+        
         if (_onFastImageLoadStart) {
             _onFastImageLoadStart(@{});
             hasSentOnLoadStart = YES;
         } {
             hasSentOnLoadStart = NO;
         }
-
+        
+        UIImage * placeholderImage = [[SDImageCache sharedImageCache]imageFromCacheForKey:_source.defaultUrl];
+    
         // Load the new source.
         [self sd_setImageWithURL:_source.uri
-                placeholderImage:nil
+                placeholderImage:placeholderImage
                          options:options
                         progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
                             double progress = MIN(1, MAX(0, (double) receivedSize / (double) expectedSize));
                             if (_onFastImageProgress) {
                                 _onFastImageProgress(@{
-                                    @"loaded": @(receivedSize),
-                                    @"total": @(expectedSize)
-                                });
+                                                       @"loaded": @(receivedSize),
+                                                       @"total": @(expectedSize)
+                                                       });
                             }
                         } completed:^(UIImage * _Nullable image,
                                       NSError * _Nullable error,
