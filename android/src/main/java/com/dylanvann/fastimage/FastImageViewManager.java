@@ -28,10 +28,6 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl>  {
     private static final String REACT_CLASS = "FastImageView";
     private static RequestManager requestManager = null;
     private RequestOptions circleCrop = RequestOptions.circleCropTransform();
-    RequestOptions requestOptions;
-    public  FastImageViewManager(){
-        requestOptions=new RequestOptions();
-    }
 
     @Override
     public String getName() {
@@ -67,7 +63,7 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl>  {
 
     @Override
     protected void onAfterUpdateTransaction(ImageViewWithUrl view) {
-        Glide.get(view.getContext().getApplicationContext()).setMemoryCategory(MemoryCategory.HIGH);
+        RequestOptions requestOptions=new RequestOptions();
         if (view.circle) {
             requestOptions = requestOptions.apply(circleCrop);
         }
@@ -115,3 +111,4 @@ class FastImageViewManager extends SimpleViewManager<ImageViewWithUrl>  {
 
 
 }
+
