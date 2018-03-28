@@ -1,6 +1,6 @@
-	{
-	  "name": "react-native-letote-fast-image",
-  "version": "1.0.8",
+{
+  "name": "react-native-letote-fast-image",
+  "version": "1.0.9",
   "description": "🚩 FastImage, performant React Native image component.",
   "keywords": [
     "cache",
