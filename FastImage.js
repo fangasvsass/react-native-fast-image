@@ -52,7 +52,7 @@ class FastImage extends Component {
     }
 
     const resolvedSource = resolveAssetSource(source)
-    // const resolvedDefaultSource = resolveAssetSource(defaultSource)
+    const resolvedDefaultSource = resolveAssetSource(defaultSource)
 
     return (
       <FastImageView
@@ -61,7 +61,7 @@ class FastImage extends Component {
         style={style}
         circle={circle}
         source={resolvedSource}
-        // defaultSource={resolvedDefaultSource}
+        defaultSource={resolvedDefaultSource}
         onFastImageLoadStart={onLoadStart}
         onFastImageProgress={onProgress}
         onFastImageLoad={onLoad}
