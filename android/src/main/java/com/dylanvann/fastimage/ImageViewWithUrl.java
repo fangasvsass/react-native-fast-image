@@ -1,6 +1,7 @@
 package com.dylanvann.fastimage;
 
 import android.content.Context;
+import android.widget.ImageView;
 
 import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.model.GlideUrl;
@@ -9,7 +10,7 @@ import com.bumptech.glide.load.model.GlideUrl;
  * Created by okct on 21/03/2018.
  */
 
-class ImageViewWithUrl extends android.support.v7.widget.AppCompatImageView {
+class ImageViewWithUrl extends ImageView {
   public String defaultSource = "";
   public boolean circle;
   public GlideUrl glideUrl;
@@ -20,3 +21,4 @@ class ImageViewWithUrl extends android.support.v7.widget.AppCompatImageView {
     super(context);
   }
 }
+
