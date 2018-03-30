@@ -6,7 +6,8 @@ import {
   NativeModules,
   requireNativeComponent,
   ViewPropTypes,
-  StyleSheet
+  StyleSheet,
+  Platform
 } from 'react-native'
 
 const resolveAssetSource = require('react-native/Libraries/Image/resolveAssetSource')
@@ -67,6 +68,11 @@ class FastImage extends Component {
         onFastImageLoad={onLoad}
         onFastImageError={onError}
         onFastImageLoadEnd={onLoadEnd}
+        {...Platform.select({
+          ios: {
+            resizeMode: props.resizeMode ? props.resizeMode : 'cover'
+          }
+        })}
       />
     )
   }
@@ -93,10 +99,6 @@ FastImage.priority = {
 
 FastImage.preload = sources => {
   FastImageViewNativeModule.preload(sources)
-}
-
-FastImage.defaultProps = {
-  resizeMode: FastImage.resizeMode.cover
 }
 
 const FastImageSourcePropType = PropTypes.shape({
