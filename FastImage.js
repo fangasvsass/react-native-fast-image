@@ -33,9 +33,10 @@ class FastImage extends Component {
       children,
       ...props
     } = this.props
-
     // If there's no source or source uri just fallback to Image.
-    if (!source || !source.uri) {
+    const resolvedSource = resolveAssetSource(source)
+    const resolvedDefaultSource = resolveAssetSource(defaultSource)
+    if (!resolvedSource || !resolvedSource.uri) {
       return (
         <Image
           ref={e => (this._root = e)}
@@ -52,14 +53,14 @@ class FastImage extends Component {
       )
     }
 
-    const resolvedSource = resolveAssetSource(source)
-    const resolvedDefaultSource = resolveAssetSource(defaultSource)
-
     return (
       <FastImageView
         ref={e => (this._root = e)}
         {...props}
-        style={style}
+        style={[
+          { height: resolvedSource.height, width: resolvedSource.width },
+          style
+        ]}
         circle={circle}
         source={resolvedSource}
         defaultSource={resolvedDefaultSource}
