@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import {
-  View,
   Image,
   NativeModules,
   requireNativeComponent,
@@ -31,6 +30,8 @@ class FastImage extends Component {
       onLoadEnd,
       style,
       children,
+      onPhotoTapListener,
+      zoom,
       ...props
     } = this.props
 
@@ -54,7 +55,29 @@ class FastImage extends Component {
 
     const resolvedSource = resolveAssetSource(source)
     const resolvedDefaultSource = resolveAssetSource(defaultSource)
-
+    if (zoom) {
+      return (
+        <PhotoView
+          ref={e => (this._root = e)}
+          {...props}
+          style={style}
+          circle={circle}
+          source={resolvedSource}
+          defaultSource={resolvedDefaultSource}
+          onFastImageLoadStart={onLoadStart}
+          onFastImageProgress={onProgress}
+          onFastImageLoad={onLoad}
+          onFastImageError={onError}
+          onFastImageLoadEnd={onLoadEnd}
+          onPhotoTapListener={onPhotoTapListener}
+          {...Platform.select({
+            ios: {
+              resizeMode: props.resizeMode ? props.resizeMode : 'cover'
+            }
+          })}
+        />
+      )
+    }
     return (
       <FastImageView
         ref={e => (this._root = e)}
@@ -129,6 +152,12 @@ const FastImageView = requireNativeComponent('FastImageView', FastImage, {
     onFastImageLoad: true,
     onFastImageError: true,
     onFastImageLoadEnd: true
+  }
+})
+
+const PhotoView = requireNativeComponent('PhotoView', PhotoView, {
+  nativeOnly: {
+    onPhotoTapListener: true
   }
 })
 
